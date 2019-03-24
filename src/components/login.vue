@@ -37,6 +37,7 @@ export default {
         })
       }else{
         this.$message.error(msg);
+          console.log(status)
       }
     }
   },
