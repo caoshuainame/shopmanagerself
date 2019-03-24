@@ -27,17 +27,17 @@ export default {
   },
   methods: {
     // 发起登录的请求
-    handlelogin(){
-      this.$http
-      .post(`login`,this.formdata)
-      .then((res)=>{
-        const {data:{data,meta:{msg,status}}} = res
-        if(status===200){
-          console.log('-------')
-        }else{
-          console.log('error')
-        }
-      })
+    async handlelogin(){
+      const res = await this.$http.post(`login`,this.formdata)
+      const {data:{data:{token},meta:{msg,status}}} = res
+      if(status===200){
+        localStorage.setItem('token',token)
+        this.$router.push({
+          name:'home'
+        })
+      }else{
+        this.$message.error(msg);
+      }
     }
   },
 
