@@ -50,8 +50,12 @@
 
           <el-table-column prop="date" label="操作" width="200">
               <template slot-scope="scope">
-                    <el-button type="primary" icon="el-icon-edit" circle size="mini" plain></el-button>
-                    <el-button type="danger" icon="el-icon-delete" circle size="mini" plain></el-button>
+                    <el-button 
+                     @click="showDiEditUsers(scope.row)"
+                    type="primary" icon="el-icon-edit" circle size="mini" plain></el-button>
+                    <el-button 
+                    @click="showMsgBox(scope.row)"
+                    type="danger" icon="el-icon-delete" circle size="mini" plain></el-button>
                     <el-button type="success" icon="el-icon-check" circle size="mini" plain></el-button>
               </template>
           </el-table-column>
@@ -66,8 +70,26 @@
           layout="total, sizes, prev, pager, next, jumper"
           :total="total">
         </el-pagination>
+        <!-- 编辑对话框 -->
+        <el-dialog title="编辑用户" :visible.sync="dialogFormVisibleEdit">
+          <el-form label-position="left" label-width="80px" :model="formdata">
+            <el-form-item label="用户名">
+              <el-input v-model="formdata.username"></el-input>
+            </el-form-item>
+            <el-form-item label="邮箱">
+              <el-input v-model="formdata.email"></el-input>
+            </el-form-item>
+            <el-form-item label="电话">
+              <el-input v-model="formdata.mobile"></el-input>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisibleEdit = false">取 消</el-button>
+            <el-button type="primary" @click="editUser()">确 定</el-button>
+          </div>
+        </el-dialog>
         <!-- 添加用户对话框 -->
-        <el-dialog title="收货地址" :visible.sync="dialogFormVisibleAdd">
+        <el-dialog title="添加用户" :visible.sync="dialogFormVisibleAdd">
           <el-form label-position="left" label-width="80px" :model="formdata">
             <el-form-item label="用户名">
               <el-input v-model="formdata.username"></el-input>
@@ -84,7 +106,7 @@
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button @click="dialogFormVisibleAdd = false">取 消</el-button>
-            <el-button type="primary" @click="dialogFormVisibleAdd = false">确 定</el-button>
+            <el-button type="primary" @click="addUser()">确 定</el-button>
           </div>
         </el-dialog>
 
@@ -101,6 +123,8 @@ export default {
             list:[],
             total:-1,
             dialogFormVisibleAdd:false,
+            dialogFormVisibleEdit:false,
+
             // 添加表单数据
             formdata:{
                 username:'',
@@ -114,8 +138,51 @@ export default {
         this.getTableData()
     },
     methods: {
+        // 编辑用户
+        async editUser(){
+            const res =await this.$http.put(`users/${this.formdata.id}`,this.formdata)
+            console.log(res)
+            const {meta:{msg,status}} = res.data
+            if(status===200){
+                this.dialogFormVisibleEdit = false
+                this.getTableData()
+            }
+        },
+        showDiEditUsers(user){
+            this.formdata = user
+            this.dialogFormVisibleEdit = true
+        },
+        // 删除-弹出
+        showMsgBox(user){
+            this.$confirm('是否删除用户?', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            })
+            .then(async () => {
+                // 发送请求
+                const res = await this.$http.delete(`users/${user.id}`,)
+                const {meta:{msg,status}} = res.data
+                if (status===200){
+                    // 提示框
+                    this.$message.success('删除成功')
+                    this.getTableData()
+                }
+              })
+            .catch(() => {
+                this.$message.info('已取消删除')    
+            });
+        },
+        // 添加用户
+        async addUser(){
+            const res =await this.$http.post(`users`,this.formdata)
+            // console.log(res)
+            this.dialogFormVisibleAdd=false
+            this.getTableData()
+        },
         // 添加用户对话框
         showDiaAddUsers(){
+            this.formdata = {}
             this.dialogFormVisibleAdd=true
         },
         // 搜索
