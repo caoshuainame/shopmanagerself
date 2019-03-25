@@ -41,6 +41,7 @@
           <el-table-column prop="date" label="用户状态" width="120">
               <template slot-scope="scope">
                   <el-switch
+                    @change="changeState(scope.row)"
                     v-model="scope.row.mg_state"
                     active-color="#13ce66"
                     inactive-color="#ff4949">
@@ -56,7 +57,9 @@
                     <el-button 
                     @click="showMsgBox(scope.row)"
                     type="danger" icon="el-icon-delete" circle size="mini" plain></el-button>
-                    <el-button type="success" icon="el-icon-check" circle size="mini" plain></el-button>
+                    <el-button 
+                    @click="showDiaSetRole(scope.row)"
+                    type="success" icon="el-icon-check" circle size="mini" plain></el-button>
               </template>
           </el-table-column>
         </el-table>
@@ -70,6 +73,24 @@
           layout="total, sizes, prev, pager, next, jumper"
           :total="total">
         </el-pagination>
+        <!-- 分配角色对话框 -->
+        <el-dialog title="角色分配" :visible.sync="dialogFormVisibleRole">
+          <el-form :model="formdata" label-position="left" label-width="80px">
+            <el-form-item label="用户名">
+                {{formdata.username}}
+            </el-form-item>
+            <el-form-item label="角色">
+              <el-select v-model="selectVal" placeholder="请选择">
+                <el-option label="请选择" value="shanghai"></el-option>
+
+              </el-select>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisibleRole = false">取 消</el-button>
+            <el-button type="primary" @click="dialogFormVisibleRole = false">确 定</el-button>
+          </div>
+        </el-dialog>
         <!-- 编辑对话框 -->
         <el-dialog title="编辑用户" :visible.sync="dialogFormVisibleEdit">
           <el-form label-position="left" label-width="80px" :model="formdata">
@@ -124,6 +145,7 @@ export default {
             total:-1,
             dialogFormVisibleAdd:false,
             dialogFormVisibleEdit:false,
+            dialogFormVisibleRole:false,
 
             // 添加表单数据
             formdata:{
@@ -131,13 +153,27 @@ export default {
                 password:'',
                 email:'',
                 mobile:''
-            }
+            },
+            selectVal:-1
         }
     },
     created() {
         this.getTableData()
     },
     methods: {
+        // 分配角色
+        showDiaSetRole(user){
+            this.dialogFormVisibleRole= true
+        },
+        // 状态管理
+        async changeState(user){
+            const res =await this.$http.put(`users/${user.id}/state/${user.mg_state}`)
+            // console.log(res)
+            const {meta:{msg,status}} = res.data
+            if(status===200){
+                this.$message.success(msg)
+            }
+        },
         // 编辑用户
         async editUser(){
             const res =await this.$http.put(`users/${this.formdata.id}`,this.formdata)
