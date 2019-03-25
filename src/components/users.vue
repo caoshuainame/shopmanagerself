@@ -80,9 +80,12 @@
                 {{formdata.username}}
             </el-form-item>
             <el-form-item label="角色">
-              <el-select v-model="selectVal" placeholder="请选择">
-                <el-option label="请选择" value="shanghai"></el-option>
-
+              <el-select v-model="selectVal" placeholder="请选择角色名称">
+                <el-option label="请选择" :value="-1"></el-option>
+                <el-option 
+                :label="item.roleName"
+                :value="item.id"
+                v-for="(item) in roles" :key="item.id"></el-option>
               </el-select>
             </el-form-item>
           </el-form>
@@ -154,7 +157,8 @@ export default {
                 email:'',
                 mobile:''
             },
-            selectVal:-1
+            selectVal:-1,
+            roles:[]
         }
     },
     created() {
@@ -162,8 +166,15 @@ export default {
     },
     methods: {
         // 分配角色
-        showDiaSetRole(user){
+        async showDiaSetRole(user){
+            this.formdata = user
             this.dialogFormVisibleRole= true
+            const res = await this.$http.get(`roles`)
+            const {data,meta:{msg,status}} = res.data
+            if (status===200){
+                this.roles = data
+                // console.log(this.roles)
+            }
         },
         // 状态管理
         async changeState(user){
@@ -247,7 +258,7 @@ export default {
             const AUTH_TOKEN = localStorage.getItem('token')
             this.$http.defaults.headers.common['Authorization'] = AUTH_TOKEN;
             const res = await this.$http.get(`users?query=${this.query}&pagenum=${this.pagenum}&pagesize=${this.pagesize}`)
-            console.log(res)
+            // console.log(res)
             const {data,meta:{status,msg}} = res.data
             if(status===200){
                 this.total = data.total
