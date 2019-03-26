@@ -91,7 +91,7 @@
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button @click="dialogFormVisibleRole = false">取 消</el-button>
-            <el-button type="primary" @click="dialogFormVisibleRole = false">确 定</el-button>
+            <el-button type="primary" @click="setRole()">确 定</el-button>
           </div>
         </el-dialog>
         <!-- 编辑对话框 -->
@@ -158,13 +158,25 @@ export default {
                 mobile:''
             },
             selectVal:-1,
-            roles:[]
+            roles:[],
+            currUserId:-1
         }
     },
     created() {
         this.getTableData()
     },
     methods: {
+        // 分配角色发送请求
+        async setRole(){
+            const res = await this.$http.put(`users/${this.formdata.id}/role`,{
+                rid:this.selectVal
+            })
+            const {meta:{msg,status}} = res.data
+            if(status===200){
+                this.dialogFormVisibleRole=false
+                this.$message.success(msg)
+            }
+        },
         // 分配角色
         async showDiaSetRole(user){
             this.formdata = user
@@ -175,6 +187,12 @@ export default {
                 this.roles = data
                 // console.log(this.roles)
             }
+            const res2 = await this.$http.get(`users/${user.id}`)
+            // const {data2,meta2:{msg2,status2}} = res.data
+            // if (status2===200){
+                this.selectVal = res2.data.data.rid
+            // }
+            
         },
         // 状态管理
         async changeState(user){
